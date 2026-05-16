@@ -2,16 +2,21 @@ import express from "express";
 import cors from "cors";
 
 let messages = [
-  { message: "Hi guys", sender: "Ahmed", timestamp: "45145" },
-  { message: "how are you Ahmed", sender: "Mustafa", timestamp: "45146" },
-  { message: "u see my message guys?", sender: "Fahed", timestamp: "45148" },
-  { message: "I'm good, you?", sender: "Ahmed", timestamp: "45147" },
+  {
+    message: "Hi! welcome to the app, you can send messages now.",
+    sender: "Mohammed Abdoon",
+    timestamp: "45145",
+  },
 ];
 
 const app = express();
 const PORT = 3000;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://m-abdoon-chatapp.hosting.codeyourfuture.io/",
+  }),
+);
 app.use(express.json());
 
 app.get("/getMessages", (req, res) => {
