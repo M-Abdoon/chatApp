@@ -1,9 +1,12 @@
-const appServerURL =
-  "https://m-abdoon-chatapp-backend.hosting.codeyourfuture.io/";
+const appServerURL = "http://localhost:3000/";
+// const appServerURL = "https://m-abdoon-chatapp-backend.hosting.codeyourfuture.io/";
 
 const currentUser = prompt("Enter your name:") || "Unknown";
+
+let lastTimestamp = 0;
+
 async function setup() {
-  renderMessages();
+  await renderMessages();
 
   const messageText = document.getElementById("messageText");
   const submitMessage = document.getElementById("submitMessage");
@@ -15,35 +18,58 @@ async function setup() {
       const success = await sendMessage(message);
       if (success) {
         messageText.value = "";
-        document.querySelector(".chat-messages").innerHTML = "";
-        renderMessages();
       } else {
         alert("Failed to send message. Please try again.");
       }
     }
   });
+
+  setInterval(pollNewMessages, 500);
+}
+
+async function pollNewMessages() {
+  const newMessages = await fetchMessages(lastTimestamp);
+  if (newMessages.length > 0) {
+    appendMessages(newMessages);
+  }
 }
 
 async function renderMessages() {
-  const messagesContainer = document.querySelector(".chat-messages");
-  let messages = await fetchMessages();
+  const messages = await fetchMessages(0);
+  messages.sort((a, b) => a.timestamp - b.timestamp);
+  appendMessages(messages);
+}
 
+function appendMessages(messages) {
+  const messagesContainer = document.querySelector(".chat-messages");
   messages.sort((a, b) => a.timestamp - b.timestamp);
 
   messages.forEach((message) => {
-    let role = "received";
-    if (currentUser === message.sender) role = "sent";
+    const role = currentUser === message.sender ? "sent" : "received";
 
-    messagesContainer.innerHTML += `
-	<div class="message ${role}">
-	<span class="sender-name">${message.sender}</span>
-	<p>${message.message}</p>
-	`;
+    const div = document.createElement("div");
+    div.className = `message ${role}`;
+    div.innerHTML = `
+      <span class="sender-name">${message.sender}</span>
+      <p>${message.message}</p>
+    `;
+    messagesContainer.appendChild(div);
+
+    // ✅ نحدّث lastTimestamp لأحدث رسالة
+    if (message.timestamp > lastTimestamp) {
+      lastTimestamp = message.timestamp;
+    }
   });
+
+  // ✅ نسكرل للأسفل تلقائياً
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
-async function fetchMessages() {
+
+async function fetchMessages(lastTimestamp = 0) {
   try {
-    const response = await fetch(`${appServerURL}getMessages`);
+    const response = await fetch(
+      `${appServerURL}getMessages?since=${lastTimestamp}`,
+    );
     const data = await response.json();
     return data;
   } catch (error) {
@@ -55,15 +81,9 @@ async function sendMessage(message) {
   try {
     const response = await fetch(`${appServerURL}sendMessage`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message,
-        sender: currentUser,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, sender: currentUser }),
     });
-
     const data = await response.json();
     return data.success;
   } catch (error) {
@@ -71,4 +91,4 @@ async function sendMessage(message) {
   }
 }
 
-window.onload = setup();
+window.onload = setup;

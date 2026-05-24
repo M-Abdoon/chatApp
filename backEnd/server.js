@@ -5,7 +5,7 @@ let messages = [
   {
     message: "Hi! welcome to the app, you can send messages now.",
     sender: "Mohammed Abdoon",
-    timestamp: "45145",
+    timestamp: 1,
   },
 ];
 
@@ -14,13 +14,19 @@ const PORT = 3000;
 
 app.use(
   cors({
-    origin: "https://m-abdoon-chatapp.hosting.codeyourfuture.io/",
+    origin: [
+      "http://localhost:5501",
+      "https://m-abdoon-chatapp-frontend.hosting.codeyourfuture.io",
+    ],
   }),
 );
 app.use(express.json());
 
 app.get("/getMessages", (req, res) => {
-  res.json(messages);
+  // since=timestamp
+  const since = parseInt(req.query.since) || 0;
+  const newMessages = messages.filter((msg) => msg.timestamp > since);
+  res.json(newMessages);
 });
 
 app.post("/sendMessage", (req, res) => {
