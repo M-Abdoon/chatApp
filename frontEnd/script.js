@@ -55,13 +55,11 @@ function appendMessages(messages) {
     `;
     messagesContainer.appendChild(div);
 
-    // ✅ نحدّث lastTimestamp لأحدث رسالة
     if (message.timestamp > lastTimestamp) {
       lastTimestamp = message.timestamp;
     }
   });
 
-  // ✅ نسكرل للأسفل تلقائياً
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
